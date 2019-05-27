@@ -18,13 +18,15 @@ _Does this mean I just need to do it like I do it in docker and write a DOCKERFI
 
 If you do a `chroot` or a `systemd-nspawn` you usually do it like this `chroot /path/to/new/root /path/to/thing2run/in/new/root`  
 This is where things start to get more complicated than just using a docker container. 
-Systems like docker, rkt or containerd are pure application-container-runtimes. They allow for interactivity via attaching to the container but are not designed for it.
+Systems like docker, rkt or containerd are pure application-container-runtimes. They allow for interactivity via attaching to the containers stdin,stderr,stdout but are not designed for attaching to virtual-consoles (like /dev/console) inside of the container.
 
 ## Enter `systemd-nspawn` and the magic `-b`-flag
 What does the `-b` flag do?  
 Basically it just tries to boot systemd inside a container and does lots of setup magic.  
 _So it's useless for openRC?_  
-Well, no but it might not work as flawlessly with it, the `-b` flag actually just starts `/sbin/init`. Reason being systemd-nspawn is made to hook into systemd. Yeah, who would have thought, right? Still this does not mean openRC won't work just as well. You just might have to adjust `/etc/initab` and or `/etc/securetty` [1]
+Well, no but it might not work as flawlessly with it, the `-b` flag actually just starts `/sbin/init`.  
+If that points to systemd it and sbus will take care of virtual consoles and /dev/console.  
+Still this does not mean openRC won't work just as well. You just might have to adjust `/etc/initab` and or `/etc/securetty` [1]
 
 If the problem is that you cannot log in due to the console being spammed by something along the lines of `cannot attach tty0` you just comment out all ttyN lines in `/etc/initab` and make sure that there is one `/dev/console` line as systemd-nspawn uses that one to attach interactively.
 
